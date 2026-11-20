@@ -2,10 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta
-  name="viewport"
-  content="width=device-width, initial-scale=1.0"
->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Stroop test</title>
 
 <style>
@@ -21,9 +18,8 @@ body {
 
 /*
 刺激表示領域を固定します。
-
-注視点・漢字・中立刺激のいずれを表示しても、
-下にある回答ボックスの位置は変わりません。
+注視点、漢字、中立刺激のいずれを表示しても、
+回答ボックスの位置は変わりません。
 */
 #word {
   width: 100%;
@@ -82,7 +78,7 @@ body {
 
 /*
 ページ表示直後は非表示にし、
-JavaScriptから必要な要素だけ表示します。
+JavaScriptから必要な要素だけを表示します。
 */
 #title,
 #word,
@@ -158,11 +154,10 @@ Code 4、対象外（無反応）
 1試行中に2回以上押下：
 Code 5、対象外（重複）
 
-※ 100 msちょうどは早期反応です。
-※ 重複押下があった場合はCode 5を優先します。
-※ 判定は内部で行いますが、結果は出力しません。
+※100 msちょうどは早期反応です。
+※重複押下があった場合はCode 5を優先します。
+※判定は内部で行いますが、結果は出力しません。
 */
-
 
 /*
 ==================================================
@@ -191,7 +186,6 @@ const keyMap = {
   arrowdown: "gold"
 };
 
-
 /*
 ==================================================
 試行数・条件数
@@ -207,7 +201,6 @@ const keyMap = {
 */
 
 const TOTAL_TRIALS = 24;
-
 const HALF_TRIALS = 12;
 
 const HALF_CONDITION_COUNTS = {
@@ -215,7 +208,6 @@ const HALF_CONDITION_COUNTS = {
   2: 6,
   3: 3
 };
-
 
 /*
 ==================================================
@@ -235,6 +227,31 @@ const FIXATION_DURATION = 500;
 // 刺激の表示時間：2,000 ms
 const STIMULUS_DURATION = 2000;
 
+/*
+==================================================
+音の設定
+==================================================
+*/
+
+/*
+最初のEnterキー押下時と
+タスク開始5秒前に鳴らす音
+*/
+const WARNING_TONE = {
+  frequency: 659.25,
+  duration: 500,
+  volume: 0.20
+};
+
+/*
+タスク開始時と
+タスク終了時に鳴らす音
+*/
+const EVENT_TONE = {
+  frequency: 880,
+  duration: 600,
+  volume: 0.22
+};
 
 /*
 ==================================================
@@ -243,37 +260,25 @@ const STIMULUS_DURATION = 2000;
 */
 
 let trialSequence = [];
-
 let trialIndex = 0;
-
 let currentTrial = null;
-
 let stimulusStartTime = null;
 
 let isWaiting = false;
-
 let isRunning = false;
-
 let audioUnlocked = false;
 
 let stimulusVisible = false;
-
 let firstResponseRecorded = false;
-
 let duplicateDetected = false;
 
 let fixationTimer = null;
-
 let stimulusTimer = null;
-
 let waitingTimer = null;
-
 let countdownStartTimer = null;
-
 let countdownTimer = null;
 
 let audioContext = null;
-
 
 /*
 ==================================================
@@ -299,14 +304,10 @@ function hideAllElements() {
     .style.display = "none";
 }
 
-
 /*
 ==================================================
 初期画面
 ==================================================
-
-表示内容：
-Enterキーを押して待機を開始してください
 */
 
 function showInitialScreen() {
@@ -315,32 +316,19 @@ function showInitialScreen() {
   const message =
     document.getElementById("message");
 
-  message.style.display =
-    "block";
-
-  message.style.marginTop =
-    "180px";
-
-  message.style.fontSize =
-    "32px";
-
-  message.style.fontWeight =
-    "bold";
+  message.style.display = "block";
+  message.style.marginTop = "180px";
+  message.style.fontSize = "32px";
+  message.style.fontWeight = "bold";
 
   message.textContent =
     "Enterキーを押して待機を開始してください";
 }
 
-
 /*
 ==================================================
 待機画面
 ==================================================
-
-表示内容：
-・Stroopテスト
-・注視点
-・開始まで注視点を見て待機してください
 */
 
 function showWaitingScreen() {
@@ -353,36 +341,24 @@ function showWaitingScreen() {
   const wordDiv =
     document.getElementById("word");
 
-  wordDiv.style.display =
-    "flex";
+  wordDiv.style.display = "flex";
 
   setWordAppearance();
 
-  wordDiv.textContent =
-    "✖";
-
-  wordDiv.style.color =
-    "black";
+  wordDiv.textContent = "✖";
+  wordDiv.style.color = "black";
 
   const message =
     document.getElementById("message");
 
-  message.style.display =
-    "block";
-
-  message.style.marginTop =
-    "20px";
-
-  message.style.fontSize =
-    "24px";
-
-  message.style.fontWeight =
-    "bold";
+  message.style.display = "block";
+  message.style.marginTop = "20px";
+  message.style.fontSize = "24px";
+  message.style.fontWeight = "bold";
 
   message.textContent =
     "開始まで注視点を見て待機してください";
 }
-
 
 /*
 ==================================================
@@ -400,8 +376,7 @@ function showTaskScreen() {
   const wordDiv =
     document.getElementById("word");
 
-  wordDiv.style.display =
-    "flex";
+  wordDiv.style.display = "flex";
 
   setWordAppearance();
 
@@ -409,7 +384,6 @@ function showTaskScreen() {
     .getElementById("keymap")
     .style.display = "flex";
 }
-
 
 /*
 ==================================================
@@ -430,18 +404,13 @@ function showEndScreen() {
   const wordDiv =
     document.getElementById("word");
 
-  wordDiv.style.display =
-    "flex";
+  wordDiv.style.display = "flex";
 
   setWordAppearance();
 
-  wordDiv.textContent =
-    "終了！";
-
-  wordDiv.style.color =
-    "black";
+  wordDiv.textContent = "終了！";
+  wordDiv.style.color = "black";
 }
-
 
 /*
 ==================================================
@@ -455,49 +424,29 @@ function showErrorScreen(text) {
   const message =
     document.getElementById("message");
 
-  message.style.display =
-    "block";
+  message.style.display = "block";
+  message.style.marginTop = "180px";
+  message.style.fontSize = "24px";
+  message.style.fontWeight = "bold";
 
-  message.style.marginTop =
-    "180px";
-
-  message.style.fontSize =
-    "24px";
-
-  message.style.fontWeight =
-    "bold";
-
-  message.textContent =
-    text;
+  message.textContent = text;
 }
-
 
 /*
 ==================================================
 刺激と注視点の見た目
 ==================================================
-
-注視点、文字、中立刺激はすべて
-sans-serif、64pxで表示します。
 */
 
 function setWordAppearance() {
   const wordDiv =
     document.getElementById("word");
 
-  wordDiv.style.fontFamily =
-    "sans-serif";
-
-  wordDiv.style.fontSize =
-    "64px";
-
-  wordDiv.style.fontWeight =
-    "normal";
-
-  wordDiv.style.lineHeight =
-    "1";
+  wordDiv.style.fontFamily = "sans-serif";
+  wordDiv.style.fontSize = "64px";
+  wordDiv.style.fontWeight = "normal";
+  wordDiv.style.lineHeight = "1";
 }
-
 
 /*
 ==================================================
@@ -520,12 +469,10 @@ function getAudioContext() {
   return audioContext;
 }
 
-
 /*
 Enterキー操作によって、
 ブラウザの音声ブロックを解除します。
 */
-
 async function unlockAudio() {
   const context =
     getAudioContext();
@@ -536,9 +483,7 @@ async function unlockAudio() {
     );
   }
 
-  if (
-    context.state !== "running"
-  ) {
+  if (context.state !== "running") {
     await context.resume();
   }
 
@@ -571,11 +516,6 @@ async function unlockAudio() {
   );
 }
 
-
-/*
-2-backと同じ音を再生します。
-*/
-
 async function playTone(
   frequency,
   durationMs,
@@ -589,9 +529,7 @@ async function playTone(
       return false;
     }
 
-    if (
-      context.state !== "running"
-    ) {
+    if (context.state !== "running") {
       await context.resume();
     }
 
@@ -619,8 +557,7 @@ async function playTone(
         duration * 0.45
       );
 
-    oscillator.type =
-      "sine";
+    oscillator.type = "sine";
 
     oscillator.frequency.setValueAtTime(
       frequency,
@@ -665,12 +602,37 @@ async function playTone(
     return true;
 
   } catch (error) {
-    console.error(error);
+    console.error(
+      "音声を再生できませんでした。",
+      error
+    );
 
     return false;
   }
 }
 
+/*
+最初のEnterキー押下時と
+開始5秒前に鳴らす共通音です。
+*/
+function playWarningTone() {
+  void playTone(
+    WARNING_TONE.frequency,
+    WARNING_TONE.duration,
+    WARNING_TONE.volume
+  );
+}
+
+/*
+タスク開始時と終了時に鳴らす共通音です。
+*/
+function playEventTone() {
+  void playTone(
+    EVENT_TONE.frequency,
+    EVENT_TONE.duration,
+    EVENT_TONE.volume
+  );
+}
 
 /*
 ==================================================
@@ -705,46 +667,25 @@ function shuffle(array) {
   return copied;
 }
 
-
-/*
-次に同じ値を加えた場合に、
-同じ値が4連続するか確認します。
-*/
-
 function wouldMakeFourConsecutive(
   values,
   nextValue
 ) {
-  if (
-    values.length < 3
-  ) {
+  if (values.length < 3) {
     return false;
   }
 
   return (
-    values[
-      values.length - 1
-    ] === nextValue &&
-
-    values[
-      values.length - 2
-    ] === nextValue &&
-
-    values[
-      values.length - 3
-    ] === nextValue
+    values[values.length - 1] === nextValue &&
+    values[values.length - 2] === nextValue &&
+    values[values.length - 3] === nextValue
   );
 }
 
-
 /*
 ==================================================
-12試行分の条件候補を作成
+12試行分の条件候補
 ==================================================
-
-一致3
-不一致6
-中立3
 */
 
 function makeHalfConditionPool() {
@@ -777,36 +718,21 @@ function makeHalfConditionPool() {
   return conditions;
 }
 
-
 /*
 ==================================================
 条件系列の生成
 ==================================================
-
-前半12試行：
-一致3、不一致6、中立3
-
-後半12試行：
-一致3、不一致6、中立3
-
-前半・後半の境界を含め、
-同一条件の4連続を禁止します。
 */
 
 function generateConditionSequence() {
   const completeSequence = [];
 
-  /*
-  half = 0：前半
-  half = 1：後半
-  */
   for (
     let half = 0;
     half < 2;
     half++
   ) {
-    let selectedHalf =
-      null;
+    let selectedHalf = null;
 
     for (
       let attempt = 0;
@@ -831,14 +757,9 @@ function generateConditionSequence() {
         i++
       ) {
         if (
-          combined[i] ===
-            combined[i - 1] &&
-
-          combined[i] ===
-            combined[i - 2] &&
-
-          combined[i] ===
-            combined[i - 3]
+          combined[i] === combined[i - 1] &&
+          combined[i] === combined[i - 2] &&
+          combined[i] === combined[i - 3]
         ) {
           valid = false;
           break;
@@ -846,16 +767,12 @@ function generateConditionSequence() {
       }
 
       if (valid) {
-        selectedHalf =
-          candidate;
-
+        selectedHalf = candidate;
         break;
       }
     }
 
-    if (
-      selectedHalf === null
-    ) {
+    if (selectedHalf === null) {
       throw new Error(
         "前半または後半の条件系列を生成できませんでした。"
       );
@@ -868,7 +785,6 @@ function generateConditionSequence() {
 
   return completeSequence;
 }
-
 
 /*
 ==================================================
@@ -916,19 +832,11 @@ function makeStimulusCandidates(
         colorIndex < colors.length;
         colorIndex++
       ) {
-        if (
-          textIndex !==
-          colorIndex
-        ) {
+        if (textIndex !== colorIndex) {
           candidates.push({
             condition: 2,
-
-            text:
-              texts[textIndex],
-
-            color:
-              colors[colorIndex],
-
+            text: texts[textIndex],
+            color: colors[colorIndex],
             stimulusId:
               texts[textIndex] +
               "_" +
@@ -962,19 +870,10 @@ function makeStimulusCandidates(
   return candidates;
 }
 
-
 /*
 ==================================================
 24試行の刺激系列を生成
 ==================================================
-
-制約：
-
-・前半は3・6・3
-・後半は3・6・3
-・同一条件の4連続禁止
-・同一正解色の4連続禁止
-・同一刺激の連続提示禁止
 */
 
 function generateTrialSequence() {
@@ -1001,8 +900,7 @@ function generateTrialSequence() {
           )
         );
 
-      let selected =
-        null;
+      let selected = null;
 
       for (
         const candidate
@@ -1044,15 +942,11 @@ function generateTrialSequence() {
           continue;
         }
 
-        selected =
-          candidate;
-
+        selected = candidate;
         break;
       }
 
-      if (
-        selected === null
-      ) {
+      if (selected === null) {
         failed = true;
         break;
       }
@@ -1074,7 +968,6 @@ function generateTrialSequence() {
     "刺激系列を生成できませんでした。"
   );
 }
-
 
 /*
 ==================================================
@@ -1102,7 +995,6 @@ function countConditions(
   return counts;
 }
 
-
 /*
 ==================================================
 刺激系列を検証
@@ -1112,9 +1004,6 @@ function countConditions(
 function validateSequence(
   sequence
 ) {
-  /*
-  全24試行か確認
-  */
   if (
     sequence.length !==
     TOTAL_TRIALS
@@ -1122,9 +1011,6 @@ function validateSequence(
     return false;
   }
 
-  /*
-  前半12試行
-  */
   const firstHalf =
     sequence.slice(
       0,
@@ -1144,9 +1030,6 @@ function validateSequence(
     return false;
   }
 
-  /*
-  後半12試行
-  */
   const secondHalf =
     sequence.slice(
       HALF_TRIALS,
@@ -1166,9 +1049,6 @@ function validateSequence(
     return false;
   }
 
-  /*
-  全体の条件数
-  */
   const totalCounts =
     countConditions(
       sequence
@@ -1182,16 +1062,13 @@ function validateSequence(
     return false;
   }
 
-  /*
-  連続制約を確認します。
-  */
   for (
     let i = 1;
     i < sequence.length;
     i++
   ) {
     /*
-    同一刺激の連続
+    同一刺激の連続を禁止
     */
     if (
       sequence[i].stimulusId ===
@@ -1202,15 +1079,13 @@ function validateSequence(
 
     if (i >= 3) {
       /*
-      同一条件の4連続
+      同一条件の4連続を禁止
       */
       if (
         sequence[i].condition ===
           sequence[i - 1].condition &&
-
         sequence[i].condition ===
           sequence[i - 2].condition &&
-
         sequence[i].condition ===
           sequence[i - 3].condition
       ) {
@@ -1218,15 +1093,13 @@ function validateSequence(
       }
 
       /*
-      同一正解色の4連続
+      同一正解色の4連続を禁止
       */
       if (
         sequence[i].color ===
           sequence[i - 1].color &&
-
         sequence[i].color ===
           sequence[i - 2].color &&
-
         sequence[i].color ===
           sequence[i - 3].color
       ) {
@@ -1237,7 +1110,6 @@ function validateSequence(
 
   return true;
 }
-
 
 /*
 ==================================================
@@ -1267,13 +1139,18 @@ function handleInitialEnter(
 
   unlockAudio()
     .then(() => {
-      audioUnlocked =
-        true;
+      audioUnlocked = true;
 
       document.removeEventListener(
         "keydown",
         handleInitialEnter
       );
+
+      /*
+      最初のEnterキー押下時に、
+      開始5秒前と同じ音を鳴らします。
+      */
+      playWarningTone();
 
       beginInitialWaiting();
     })
@@ -1285,7 +1162,6 @@ function handleInitialEnter(
       );
     });
 }
-
 
 /*
 ==================================================
@@ -1302,20 +1178,12 @@ function startCountdown() {
     );
 
   /*
-  2-backと同じ開始5秒前の音です。
-
-  659.25 Hz
-  500 ms
-  音量0.20
+  最初のEnterキー押下時と
+  同じ音を鳴らします。
   */
-  void playTone(
-    659.25,
-    500,
-    0.20
-  );
+  playWarningTone();
 
-  message.style.fontSize =
-    "42px";
+  message.style.fontSize = "42px";
 
   message.textContent =
     String(remaining);
@@ -1324,25 +1192,20 @@ function startCountdown() {
     setInterval(() => {
       remaining--;
 
-      if (
-        remaining >= 1
-      ) {
+      if (remaining >= 1) {
         message.textContent =
           String(remaining);
+
       } else {
         clearInterval(
           countdownTimer
         );
 
-        countdownTimer =
-          null;
-
-        message.textContent =
-          "";
+        countdownTimer = null;
+        message.textContent = "";
       }
     }, 1000);
 }
-
 
 /*
 ==================================================
@@ -1352,9 +1215,6 @@ function startCountdown() {
 
 function beginInitialWaiting() {
   try {
-    /*
-    待機開始時に24試行の刺激系列を生成します。
-    */
     trialSequence =
       generateTrialSequence();
 
@@ -1369,17 +1229,11 @@ function beginInitialWaiting() {
   }
 
   isWaiting = true;
-
   trialIndex = 0;
-
   currentTrial = null;
 
   showWaitingScreen();
 
-  /*
-  Enterキー押下から25秒後、
-  開始5秒前に音とカウントダウンを開始します。
-  */
   countdownStartTimer =
     setTimeout(() => {
       if (isWaiting) {
@@ -1387,17 +1241,12 @@ function beginInitialWaiting() {
       }
     }, COUNTDOWN_START_TIME);
 
-  /*
-  Enterキー押下から30秒後に
-  タスクを自動開始します。
-  */
   waitingTimer =
     setTimeout(
       startTask,
       INITIAL_WAIT_DURATION
     );
 }
-
 
 /*
 ==================================================
@@ -1411,42 +1260,28 @@ function startTask() {
   }
 
   isWaiting = false;
-
   isRunning = true;
 
-  if (
-    countdownTimer !== null
-  ) {
+  if (countdownTimer !== null) {
     clearInterval(
       countdownTimer
     );
 
-    countdownTimer =
-      null;
+    countdownTimer = null;
   }
 
   /*
-  2-backと同じタスク開始音です。
-
-  880 Hz
-  600 ms
-  音量0.22
+  タスク開始時の音を鳴らします。
   */
-  void playTone(
-    880,
-    600,
-    0.22
-  );
+  playEventTone();
 
   showTaskScreen();
 
   /*
-  開始直後は注視点を
-  500 ms表示します。
+  開始直後は注視点から始まります。
   */
   showFixation();
 }
-
 
 /*
 ==================================================
@@ -1464,7 +1299,6 @@ function showFixation() {
     TOTAL_TRIALS
   ) {
     endTest();
-
     return;
   }
 
@@ -1475,17 +1309,11 @@ function showFixation() {
 
   setWordAppearance();
 
-  wordDiv.textContent =
-    "✖";
+  wordDiv.textContent = "✖";
+  wordDiv.style.color = "black";
 
-  wordDiv.style.color =
-    "black";
-
-  stimulusVisible =
-    false;
-
-  currentTrial =
-    null;
+  stimulusVisible = false;
+  currentTrial = null;
 
   fixationTimer =
     setTimeout(
@@ -1493,7 +1321,6 @@ function showFixation() {
       FIXATION_DURATION
     );
 }
-
 
 /*
 ==================================================
@@ -1511,26 +1338,13 @@ function showStimulus() {
       trialIndex
     ];
 
-  firstResponseRecorded =
-    false;
+  firstResponseRecorded = false;
+  duplicateDetected = false;
 
-  duplicateDetected =
-    false;
-
-  /*
-  内部判定を初期化します。
-  */
-  currentTrial.firstRT =
-    "";
-
-  currentTrial.firstAnswer =
-    "";
-
-  currentTrial.correct =
-    0;
-
-  currentTrial.code =
-    4;
+  currentTrial.firstRT = "";
+  currentTrial.firstAnswer = "";
+  currentTrial.correct = 0;
+  currentTrial.code = 4;
 
   const wordDiv =
     document.getElementById(
@@ -1549,8 +1363,7 @@ function showStimulus() {
     stimulusStartTime =
       performance.now();
 
-    stimulusVisible =
-      true;
+    stimulusVisible = true;
 
     stimulusTimer =
       setTimeout(
@@ -1559,7 +1372,6 @@ function showStimulus() {
       );
   });
 }
-
 
 /*
 ==================================================
@@ -1581,9 +1393,7 @@ document.addEventListener(
     const key =
       event.key.toLowerCase();
 
-    if (
-      !(key in keyMap)
-    ) {
+    if (!(key in keyMap)) {
       return;
     }
 
@@ -1611,14 +1421,10 @@ document.addEventListener(
     /*
     最初の押下を代表反応にします。
     */
-    if (
-      !firstResponseRecorded
-    ) {
-      firstResponseRecorded =
-        true;
+    if (!firstResponseRecorded) {
+      firstResponseRecorded = true;
 
-      currentTrial.firstRT =
-        rt;
+      currentTrial.firstRT = rt;
 
       currentTrial.firstAnswer =
         answerColor;
@@ -1629,43 +1435,26 @@ document.addEventListener(
           ? 1
           : 0;
 
-      /*
-      0～100 ms
-      */
       if (rt <= 100) {
-        currentTrial.code =
-          3;
-      }
+        currentTrial.code = 3;
 
-      /*
-      100 ms超で正答
-      */
-      else if (
+      } else if (
         currentTrial.correct === 1
       ) {
-        currentTrial.code =
-          1;
+        currentTrial.code = 1;
+
+      } else {
+        currentTrial.code = 2;
       }
 
+    } else {
       /*
-      100 ms超で誤答
+      2回目以降の押下
       */
-      else {
-        currentTrial.code =
-          2;
-      }
-    }
-
-    /*
-    2回目以降の押下
-    */
-    else {
-      duplicateDetected =
-        true;
+      duplicateDetected = true;
     }
   }
 );
-
 
 /*
 ==================================================
@@ -1681,28 +1470,21 @@ function finishCurrentTrial() {
     return;
   }
 
-  stimulusVisible =
-    false;
+  stimulusVisible = false;
 
   /*
   一度も押下がなかった場合
   */
-  if (
-    !firstResponseRecorded
-  ) {
-    currentTrial.code =
-      4;
+  if (!firstResponseRecorded) {
+    currentTrial.code = 4;
   }
 
   /*
   追加押下があった場合は、
   Code 5を最終判定にします。
   */
-  if (
-    duplicateDetected
-  ) {
-    currentTrial.code =
-      5;
+  if (duplicateDetected) {
+    currentTrial.code = 5;
   }
 
   trialIndex++;
@@ -1712,11 +1494,11 @@ function finishCurrentTrial() {
     TOTAL_TRIALS
   ) {
     endTest();
+
   } else {
     showFixation();
   }
 }
-
 
 /*
 ==================================================
@@ -1734,14 +1516,9 @@ function endTest() {
     return;
   }
 
-  isRunning =
-    false;
-
-  stimulusVisible =
-    false;
-
-  currentTrial =
-    null;
+  isRunning = false;
+  stimulusVisible = false;
+  currentTrial = null;
 
   clearTimeout(
     fixationTimer
@@ -1751,9 +1528,30 @@ function endTest() {
     stimulusTimer
   );
 
+  clearTimeout(
+    waitingTimer
+  );
+
+  clearTimeout(
+    countdownStartTimer
+  );
+
+  if (countdownTimer !== null) {
+    clearInterval(
+      countdownTimer
+    );
+
+    countdownTimer = null;
+  }
+
+  /*
+  タスク終了時に、
+  タスク開始時と同じ音を鳴らします。
+  */
+  playEventTone();
+
   showEndScreen();
 }
-
 
 /*
 ==================================================
